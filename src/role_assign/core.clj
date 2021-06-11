@@ -20,20 +20,23 @@
 (defn get-id-raw [id]
   (remove-last (subs id 3)))
 
+(defn parse-id [id]
+  (if (= (subs id 0 1) "<") (get-id-raw id)
+      id))
+
 (defmulti handle-event (fn [type _data] type))
 
 (defmethod handle-event :message-create [event-type {{bot :bot} :author :keys [channel-id guild-id author content]}]
-  (println "HANDLE MESSAGE")
   (let [connection (:rest @state)
-        message (clojure.string/split content #" ")
+        message (into [] (filter #(not= % "") (clojure.string/split content #" ")))
         channel @(discord-rest/get-channel! connection channel-id)
         author-user @(discord-rest/get-guild-member! connection guild-id (:id author))]
     (if (and (= "!" (subs content 0 1)) (> (count (clojure.set/intersection (into #{} (:roles config)) (into #{} (:roles author-user)))) 0))
-      (let [target-user (get-id-raw (message 1))
-            target-role (get-id-raw (message 2))]
+      (let [target-user (parse-id (message 1))
+            target-role (parse-id (message 2))]
         (cond
-          (= (message 0) "!give-role") (println @(discord-rest/add-guild-member-role! connection guild-id target-user target-role))
-          (= (message 0) "!take-role") (discord-rest/remove-guild-member-role! connection guild-id target-user target-role))))))
+          (= (message 0) "!give-role") @(discord-rest/add-guild-member-role! connection guild-id target-user target-role)
+          (= (message 0) "!take-role") @(discord-rest/remove-guild-member-role! connection guild-id target-user target-role))))))
 
 (defmethod handle-event :ready
   [_ _]
