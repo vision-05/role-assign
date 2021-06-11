@@ -6,4 +6,7 @@
   :dependencies [[org.clojure/clojure "1.10.1"]
                  [org.suskalo/discljord "1.1.1"]]
   :repl-options {:init-ns role-assign.core}
-  :main role-assign.core)
+  :main role-assign.core
+  :target-path "target/%s"
+  :profiles {:uberjar {:aot :all
+                       :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}})

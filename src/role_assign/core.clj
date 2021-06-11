@@ -1,4 +1,5 @@
 (ns role-assign.core
+  (:gen-class)
   (:require [clojure.edn :as edn]
             [clojure.string]
             [clojure.set]
